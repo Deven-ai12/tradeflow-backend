@@ -22,15 +22,19 @@ public class AuthServiceImpl implements AuthService{
 	@Override
 	public RegisterResponse createUser(RegisterRequest registerRequest) {
 		User user = mapToEntity(registerRequest);
-		if (userRepository.existsByEmail(registerRequest.getEmail())) {
-		    throw new EmailAlreadyExistsException(
-		            "Email already registered.");
-		}
+		  if(emailExists(user)) {
+	            throw new EmailAlreadyExistsException("User with email " +user.getEmail()
+	                    + " already exists");
+	        }
 		 User userResponse = userRepository.save(user);
 		 return mapToDto(userResponse);
 	}
 	
 	
+	private boolean emailExists(User user) {
+        return userRepository.existsByEmail(user.getEmail());
+    }
+
 	private User mapToEntity(RegisterRequest registerRequest) {
 		User user = new User();
 		
