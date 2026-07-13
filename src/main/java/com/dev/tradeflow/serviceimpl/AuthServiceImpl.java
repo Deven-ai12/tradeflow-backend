@@ -1,5 +1,6 @@
 package com.dev.tradeflow.serviceimpl;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.dev.tradeflow.dto.request.RegisterRequest;
@@ -13,9 +14,11 @@ import com.dev.tradeflow.service.AuthService;
 public class AuthServiceImpl implements AuthService{
 	
 	private UserRepository userRepository;
+	private final PasswordEncoder passwordEncoder;
 	
-	public AuthServiceImpl(UserRepository userRepository) {
+	public AuthServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder) {
 		this.userRepository = userRepository;
+		this.passwordEncoder = passwordEncoder;
 	}
 
 
@@ -41,7 +44,7 @@ public class AuthServiceImpl implements AuthService{
 		user.setFirstName(registerRequest.getFirstName());
 		user.setLastName(registerRequest.getLastName());
 		user.setEmail(registerRequest.getEmail());
-		user.setPassword(registerRequest.getPassword());
+		user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
 		
 		return user;
 		
