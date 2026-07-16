@@ -3,18 +3,25 @@ package com.dev.tradeflow.serviceimpl;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.dev.tradeflow.dto.request.LoginRequestDto;
 import com.dev.tradeflow.dto.request.RegisterRequest;
+import com.dev.tradeflow.dto.response.LoginResponseDto;
 import com.dev.tradeflow.dto.response.RegisterResponse;
 import com.dev.tradeflow.entity.User;
 import com.dev.tradeflow.entity.VerificationToken;
 import com.dev.tradeflow.exception.EmailAlreadyExistsException;
 import com.dev.tradeflow.repository.UserRepository;
 import com.dev.tradeflow.repository.VerificationTokenRepository;
+import com.dev.tradeflow.security.CustomUserDetails;
+import com.dev.tradeflow.security.JwtService;
 import com.dev.tradeflow.service.AuthService;
 import com.dev.tradeflow.service.EmailService;
+import org.springframework.security.core.Authentication;
 
 import jakarta.transaction.Transactional;
 
@@ -25,13 +32,19 @@ public class AuthServiceImpl implements AuthService{
 	private final PasswordEncoder passwordEncoder;
 	private final VerificationTokenRepository verificationTokenRepository;
 	private final EmailService emailService;
+	private final AuthenticationManager authenticationManager;
+	private final JwtService jwtService;
 	
 	public AuthServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, 
-			VerificationTokenRepository verificationTokenRepository, EmailService emailService) {
+			VerificationTokenRepository verificationTokenRepository, EmailService emailService,
+			AuthenticationManager authenticationManager, JwtService jwtService) {
 		this.userRepository = userRepository;
 		this.passwordEncoder = passwordEncoder;
 		this.verificationTokenRepository = verificationTokenRepository;
 		this.emailService = emailService;
+		this.authenticationManager = authenticationManager;
+		this.jwtService = jwtService;
+		
 	}
 
 
@@ -59,6 +72,36 @@ public class AuthServiceImpl implements AuthService{
 		  emailService.sendVerificationEmail(userResponse, token);
 		  
 		 return mapToDto(userResponse);
+	}
+	
+	@Override
+	public LoginResponseDto login(LoginRequestDto request) {
+
+	    Authentication authentication =
+	            authenticationManager.authenticate(
+	                    new UsernamePasswordAuthenticationToken(
+	                            request.getEmail(),
+	                            request.getPassword()));
+
+	    CustomUserDetails userDetails =
+	            (CustomUserDetails) authentication.getPrincipal();
+
+	    User user = userDetails.getUser();
+
+	    String token = jwtService.generateToken(user.getEmail());
+
+	    
+	    		LoginResponseDto response = new LoginResponseDto();
+
+	    response.setAccessToken(token);
+	    response.setTokenType("Bearer");
+	    response.setExpiresIn(86400000L);
+	    response.setFirstName(user.getFirstName());
+	    response.setLastName(user.getLastName());
+	    response.setEmail(user.getEmail());
+	    response.setRole(user.getRole().name());
+
+	    return response;
 	}
 	
 	
