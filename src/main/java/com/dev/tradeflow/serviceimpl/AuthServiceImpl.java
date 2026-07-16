@@ -14,6 +14,7 @@ import com.dev.tradeflow.exception.EmailAlreadyExistsException;
 import com.dev.tradeflow.repository.UserRepository;
 import com.dev.tradeflow.repository.VerificationTokenRepository;
 import com.dev.tradeflow.service.AuthService;
+import com.dev.tradeflow.service.EmailService;
 
 import jakarta.transaction.Transactional;
 
@@ -23,11 +24,14 @@ public class AuthServiceImpl implements AuthService{
 	private final UserRepository userRepository;
 	private final PasswordEncoder passwordEncoder;
 	private final VerificationTokenRepository verificationTokenRepository;
+	private final EmailService emailService;
 	
-	public AuthServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, VerificationTokenRepository verificationTokenRepository) {
+	public AuthServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, 
+			VerificationTokenRepository verificationTokenRepository, EmailService emailService) {
 		this.userRepository = userRepository;
 		this.passwordEncoder = passwordEncoder;
 		this.verificationTokenRepository = verificationTokenRepository;
+		this.emailService = emailService;
 	}
 
 
@@ -51,6 +55,8 @@ public class AuthServiceImpl implements AuthService{
 		  verificationToken.setExpiryDate(LocalDateTime.now().plusHours(24));
 
 		  verificationTokenRepository.save(verificationToken);
+		  
+		  emailService.sendVerificationEmail(userResponse, token);
 		  
 		 return mapToDto(userResponse);
 	}
