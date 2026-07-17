@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import com.dev.tradeflow.dto.request.LoginRequestDto;
 import com.dev.tradeflow.dto.request.RegisterRequest;
 import com.dev.tradeflow.dto.response.LoginResponseDto;
+import com.dev.tradeflow.dto.response.ProfileResponse;
 import com.dev.tradeflow.dto.response.RegisterResponse;
 import com.dev.tradeflow.entity.User;
 import com.dev.tradeflow.entity.VerificationToken;
@@ -22,6 +23,7 @@ import com.dev.tradeflow.security.JwtService;
 import com.dev.tradeflow.service.AuthService;
 import com.dev.tradeflow.service.EmailService;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import jakarta.transaction.Transactional;
 
@@ -100,6 +102,30 @@ public class AuthServiceImpl implements AuthService{
 	    response.setLastName(user.getLastName());
 	    response.setEmail(user.getEmail());
 	    response.setRole(user.getRole().name());
+
+	    return response;
+	}
+	
+	@Override
+	public ProfileResponse getProfile() {
+
+	    Authentication authentication =
+	            SecurityContextHolder.getContext().getAuthentication();
+
+	    CustomUserDetails userDetails =
+	            (CustomUserDetails) authentication.getPrincipal();
+
+	    User user = userDetails.getUser();
+
+	    ProfileResponse response = new ProfileResponse();
+
+	    response.setId(user.getId());
+	    response.setFirstName(user.getFirstName());
+	    response.setLastName(user.getLastName());
+	    response.setEmail(user.getEmail());
+	    response.setRole(user.getRole());
+	    response.setEnabled(user.getEnabled());
+	    response.setCreatedAt(user.getCreatedAt());
 
 	    return response;
 	}
