@@ -89,5 +89,22 @@ public class GlobalExceptionHandler {
 
 	    return ResponseEntity.badRequest().body(response);
 	}
+	
+	@ExceptionHandler(StockNotFoundException.class)
+	public ResponseEntity<ExceptionResponseDto> handleStockNotFoundException(
+	        StockNotFoundException ex, HttpServletRequest request) {
+
+		ExceptionResponseDto error = new ExceptionResponseDto(
+				LocalDateTime.now(),
+	            HttpStatus.NOT_FOUND.value(),
+	            HttpStatus.NOT_FOUND.getReasonPhrase(),
+	            ex.getMessage(),
+	            request.getRequestURI()
+	            );
+
+	    return ResponseEntity
+	            .status(HttpStatus.NOT_FOUND)
+	            .body(error);
+	}
 
 }

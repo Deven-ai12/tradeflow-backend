@@ -13,4 +13,6 @@ public interface StockRepository extends JpaRepository<Stock, Long>{
 	Optional<Stock> findBySymbol(String symbol);
 
 	boolean existsBySymbol(String symbol);
+	
+	void deleteBySymbol(String symbol);
 }

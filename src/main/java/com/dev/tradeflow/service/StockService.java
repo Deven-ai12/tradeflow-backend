@@ -11,11 +11,11 @@ public interface StockService {
 
     StockResponseDto createStock(CreateStockRequestDto request);
 
-//    List<StockResponseDto> getAllStocks();
-//
-//    StockResponseDto getStockBySymbol(String symbol);
-//
-//    StockResponseDto updateStock(Long id, UpdateStockRequestDto request);
-//
-//    void deleteStock(Long id);
+    List<StockResponseDto> getAllStocks();
+
+    StockResponseDto getStockBySymbol(String symbol);
+
+    StockResponseDto updateStock(String symbol, UpdateStockRequestDto request);
+
+    void deleteStock(String symbol);
 }

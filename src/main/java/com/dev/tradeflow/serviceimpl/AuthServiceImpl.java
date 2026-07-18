@@ -5,7 +5,6 @@ import java.util.UUID;
 
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.dev.tradeflow.dto.request.LoginRequestDto;
@@ -16,6 +15,7 @@ import com.dev.tradeflow.dto.response.RegisterResponse;
 import com.dev.tradeflow.entity.User;
 import com.dev.tradeflow.entity.VerificationToken;
 import com.dev.tradeflow.exception.EmailAlreadyExistsException;
+import com.dev.tradeflow.mapper.UserMapper;
 import com.dev.tradeflow.repository.UserRepository;
 import com.dev.tradeflow.repository.VerificationTokenRepository;
 import com.dev.tradeflow.security.CustomUserDetails;
@@ -31,33 +31,33 @@ import jakarta.transaction.Transactional;
 public class AuthServiceImpl implements AuthService{
 	
 	private final UserRepository userRepository;
-	private final PasswordEncoder passwordEncoder;
 	private final VerificationTokenRepository verificationTokenRepository;
 	private final EmailService emailService;
 	private final AuthenticationManager authenticationManager;
 	private final JwtService jwtService;
+	private final UserMapper userMapper;
 	
-	public AuthServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, 
+	
+	public AuthServiceImpl(UserRepository userRepository,
 			VerificationTokenRepository verificationTokenRepository, EmailService emailService,
-			AuthenticationManager authenticationManager, JwtService jwtService) {
+			AuthenticationManager authenticationManager, JwtService jwtService, UserMapper userMapper) {
 		this.userRepository = userRepository;
-		this.passwordEncoder = passwordEncoder;
 		this.verificationTokenRepository = verificationTokenRepository;
 		this.emailService = emailService;
 		this.authenticationManager = authenticationManager;
 		this.jwtService = jwtService;
-		
+		this.userMapper = userMapper;
 	}
 
 
 	@Override
 	@Transactional
 	public RegisterResponse createUser(RegisterRequest registerRequest) {
-		User user = mapToEntity(registerRequest);
-		  if(emailExists(user)) {
-	            throw new EmailAlreadyExistsException("User with email " +user.getEmail()
-	                    + " already exists");
-	        }
+		User user = userMapper.toEntity(registerRequest);
+		if (emailExists(registerRequest.getEmail())) {
+		    throw new EmailAlreadyExistsException(
+		            "User with email " + registerRequest.getEmail() + " already exists.");
+		}
 		  
 		  User userResponse = userRepository.save(user);
 		  
@@ -73,7 +73,7 @@ public class AuthServiceImpl implements AuthService{
 		  
 		  emailService.sendVerificationEmail(userResponse, token);
 		  
-		 return mapToDto(userResponse);
+		 return userMapper.toResponse(userResponse);
 	}
 	
 	@Override
@@ -130,36 +130,11 @@ public class AuthServiceImpl implements AuthService{
 	    return response;
 	}
 	
+//	to check email exists or not 
 	
-	private boolean emailExists(User user) {
-        return userRepository.existsByEmail(user.getEmail());
-    }
-
-	private User mapToEntity(RegisterRequest registerRequest) {
-		User user = new User();
-		
-		user.setFirstName(registerRequest.getFirstName());
-		user.setLastName(registerRequest.getLastName());
-		user.setEmail(registerRequest.getEmail());
-		user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
-		
-		return user;
-		
+	private boolean emailExists(String email) {
+	    return userRepository.existsByEmail(email);
 	}
 	
-	private RegisterResponse mapToDto(User user) {
-		RegisterResponse registerResponse = new RegisterResponse();
-		
-		registerResponse.setId(user.getId());
-		registerResponse.setFirstName(user.getFirstName());
-		registerResponse.setLastName(user.getLastName());
-		registerResponse.setEmail(user.getEmail());
-		registerResponse.setRole(user.getRole());
-		registerResponse.setEnabled(user.getEnabled());
-		registerResponse.setCreatedAt(user.getCreatedAt());
-		registerResponse.setMessage("Registration successful. Please verify your email to activate your account.");
-		
-		return registerResponse;
-		
-	}
+	
 }

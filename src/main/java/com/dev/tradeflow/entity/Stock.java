@@ -31,21 +31,29 @@ public class Stock implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Example: RELIANCE, TCS, INFY
+    
     @Column(nullable = false, unique = true, length = 20)
     private String symbol;
 
-    // Example: Reliance Industries Ltd.
+    
     @Column(nullable = false, length = 200)
     private String companyName;
 
-    // NSE / BSE
+    
     @Column(nullable = false, length = 20)
     private String exchange;
 
-    // Banking, IT, Pharma...
+    
     @Column(length = 100)
     private String sector;
+    
+    // External Market API Identifier
+    @Column(unique = true)
+    private String instrumentToken;
+
+    // International Security Identifier
+    @Column(unique = true)
+    private String isin;
 
     @Column(nullable = false, precision = 15, scale = 2)
     private BigDecimal currentPrice;
@@ -140,6 +148,22 @@ public class Stock implements Serializable {
 
 	public void setDayHigh(BigDecimal dayHigh) {
 		this.dayHigh = dayHigh;
+	}
+
+	public String getInstrumentToken() {
+		return instrumentToken;
+	}
+
+	public void setInstrumentToken(String instrumentToken) {
+		this.instrumentToken = instrumentToken;
+	}
+
+	public String getIsin() {
+		return isin;
+	}
+
+	public void setIsin(String isin) {
+		this.isin = isin;
 	}
 
 	public BigDecimal getDayLow() {
